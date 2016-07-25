@@ -1,0 +1,419 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.4.0">
+  <meta charset="utf-8">
+  <title>Class: Calibrator</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
+            <h1><small></small><span class="symbol-name">Calibrator</span></h1>
+            <p class="source-link">Source: <a href="calibrator.js.html#source-line-35">calibrator.<wbr>js:35</a></p>
+            <div class="symbol-classdesc">
+              <p>A self contained object for easy web based screen calibration</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Properties</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Calibrator.html#callbackWhenClosed">callbackWhenClosed</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#container">container</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#currentImage">currentImage</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#currentImageScaledWidthInPx">currentImageScaledWidthInPx</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Calibrator.html#diagonalSize">diagonalSize</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#diagonalSizeInCm">diagonalSizeInCm</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#diagonalSizeInPx">diagonalSizeInPx</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#distanceFromScreen">distanceFromScreen</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Calibrator.html#imageRatio">imageRatio</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#pixelsPerCm">pixelsPerCm</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#pixelsPerDegree">pixelsPerDegree</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#pixelsPerInch">pixelsPerInch</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Calibrator.html#callbackNow">callbackNow(status)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#canvasResized">canvasResized()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Calibrator.html#hide">hide()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#show">show()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Calibrator.html#toggle">toggle()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Calibrator.html#toggleInfo">toggleInfo()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="Calibrator">new&nbsp;<span class="symbol-name">Calibrator</span><span class="signature"><span class="signature-params">(callbackWhenClosed, showWhenReady)</span></span></h2>
+            <p>Setup of the calibrator object</p>
+            <section>
+              <h3>Parameters</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>callbackWhenClosed</p>
+                    </td>
+                    <td>
+                      <p>function()</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>function to call when the calibrator is dismissed. An object containing relevant calibration information is passed as argument.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>showWhenReady</p>
+                    </td>
+                    <td>
+                      <p>Boolean</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>If true, the calibrator is displayed after templates are loaded.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
+            <h2>Properties</h2>
+            <section>
+              <div class="symbol-detail-labels"><span class="label label-public">public</span></div>
+              <h3 id="callbackWhenClosed"><span class="symbol-name">callbackWhenClosed</span><small class="property-type">
+            &nbsp;function()</small></h3>
+              <p>
+                <p>Function called after the user closes the calibrator. Argument sent to the callback is an object with keys </p>
+              </p>
+              <ul>
+                <li>status
+                  <ul>
+                    <li>0 the calibrator did not finish normally</li>
+                    <li>1 calibrator finish normally</li>
+                  </ul>
+                </li>
+                <li>diagonalSize
+                  <ul>
+                    <li>diagonal size in inches</li>
+                  </ul>
+                </li>
+                <li>diagonalSizeInPx
+                  <ul>
+                    <li>diagonal size in inches</li>
+                  </ul>
+                </li>
+                <li>distanceFromScreenInCm
+                  <ul>
+                    <li>distance from the screen in cm (calibrator.distanceFromScreen)</li>
+                  </ul>
+                </li>
+                <li>pixelsPerInch
+                  <ul>
+                    <li>computed pixel density in pixels per inch</li>
+                  </ul>
+                </li>
+                <li>pixelsPerDegree
+                  <ul>
+                    <li>computed pixels per degree</li>
+                  </ul>
+                </li>
+              </ul>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="container"><span class="symbol-name">container</span><small class="property-type">
+            &nbsp;object</small></h3>
+              <p>Container element reference</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="currentImage"><span class="symbol-name">currentImage</span></h3>
+              <p>Get the current image key</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>string</code>&nbsp;
+                    <p>image key as stored in calibrator.IMAGES</p>
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="currentImageScaledWidthInPx"><span class="symbol-name">currentImageScaledWidthInPx</span></h3>
+              <p>Returns the scaled width depending on the selected scale factor (imageRatio) and maximum scaling of the image.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Number</code>&nbsp;
+                    <p>Scaled width in pixel</p>
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="diagonalSize"><span class="symbol-name">diagonalSize</span></h3>
+              <p>Screen physical diagonal size in inches</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Number</code>&nbsp;
+                    <p>Number of inches on the screen's diagonal</p>
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="diagonalSizeInCm"><span class="symbol-name">diagonalSizeInCm</span></h3>
+              <p>Physical diagonal size of the screen in cm.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Number</code>&nbsp;
+                    <p>Number of cm on the screen's diagonal</p>
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="diagonalSizeInPx"><span class="symbol-name">diagonalSizeInPx</span></h3>
+              <p>Returns Diagonal of the screen in pixels. Depends on the resolution of the screen. We are always able to compute it.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Number</code>&nbsp;
+                    <p>Number of pixels on the screen diagonal</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-constant">constant</span>&nbsp;<span class="label label-public">public</span></div>
+              <h3 id="distanceFromScreen"><span class="symbol-name">distanceFromScreen</span><small class="property-type">
+            &nbsp;Number</small></h3>
+              <p>Distance of the subject from the screen in cm, default to 50 cm (arm length)</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="imageRatio"><span class="symbol-name">imageRatio</span></h3>
+              <p>Current image scale ratio</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Number</code>&nbsp;
+                    <p>Ratio between 0 and 1 (this ratio will then be multiplied by the maximum scaling factor for each image to produce the observed size)</p>
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="pixelsPerCm"><span class="symbol-name">pixelsPerCm</span></h3>
+              <p>Return the screen pixel per cm</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Number</code>&nbsp;
+                    <p>Pixel per cm</p>
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="pixelsPerDegree"><span class="symbol-name">pixelsPerDegree</span></h3>
+              <p>Returns the pixels per degree as a function of pixel density of the screen and subject's distance from the screen</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Number</code>&nbsp;
+                    <p>Pixel per degree</p>
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="pixelsPerInch"><span class="symbol-name">pixelsPerInch</span></h3>
+              <p>Return the screen pixel per inches</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Number</code>&nbsp;
+                    <p>Pixel per inches</p>
+                  </p>
+                </dd>
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="callbackNow"><span class="symbol-name">callbackNow</span><span class="signature"><span class="signature-params">(status)</span></span></h3>
+              <p>Function called when calibrator is dismissed. Call the callbackWhenClosed function if it was provided, else just print the result of the calibrator in the console.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>status</p>
+                      </td>
+                      <td>
+                        <p>Number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>0 for an early exit. 1 for a normal exit.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="canvasResized"><span class="symbol-name">canvasResized</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Function handling canvas resize and redraw</p>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-public">public</span></div>
+              <h3 id="hide"><span class="symbol-name">hide</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> undefined</span></span></h3>
+              <p>Hides the calibrator.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>undefined</code>&nbsp;</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-public">public</span></div>
+              <h3 id="show"><span class="symbol-name">show</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> undefined</span></span></h3>
+              <p>Shows the calibrator.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>undefined</code>&nbsp;</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-public">public</span></div>
+              <h3 id="toggle"><span class="symbol-name">toggle</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> undefined</span></span></h3>
+              <p>Toggle the display of the calibrator.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>undefined</code>&nbsp;</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-public">public</span></div>
+              <h3 id="toggleInfo"><span class="symbol-name">toggleInfo</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> undefined</span></span></h3>
+              <p>Toggle display of the information div.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>undefined</code>&nbsp;</p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.4.0 on July 25, 2016.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

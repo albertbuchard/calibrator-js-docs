@@ -1,0 +1,1334 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.4.0">
+  <meta charset="utf-8">
+  <title>Source: calibrator.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: calibrator.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>/**
+ * CALIBRATOR.JS
+ * Created. 2016
+ *
+ * Screen calibrator boilerplate for web based experiments.
+ * 
+ * Authors. Albert Buchard, Amanda Yung and Augustin Joessel
+ *
+ * Requires: Underscore.js and jQuery
+ * 
+ * LICENSE MIT 
+ */
+
+/* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Set-up &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+/* &#x3D;&#x3D;&#x3D; Get the absolute path of the library &#x3D;&#x3D;&#x3D; */
+var scripts &#x3D; document.getElementsByTagName(&quot;script&quot;);
+var calibratorFullpath &#x3D; scripts[scripts.length - 1].src;
+var delimiterIndices &#x3D; findAllIndices(&quot;/&quot;, calibratorFullpath);
+calibratorFullpath &#x3D; calibratorFullpath.substr(0, delimiterIndices[delimiterIndices.length - 2]);
+
+/* &#x3D;&#x3D;&#x3D; Add the calibrator css once the page is loaded &#x3D;&#x3D;&#x3D; */
+document.addEventListener(&quot;DOMContentLoaded&quot;, function(event) {
+  var head &#x3D; document.getElementsByTagName(&#x27;head&#x27;)[0];
+  var link &#x3D; document.createElement(&#x27;link&#x27;);
+  link.rel &#x3D; &#x27;stylesheet&#x27;;
+  link.type &#x3D; &#x27;text/css&#x27;;
+  link.href &#x3D; calibratorFullpath + &#x27;/css/calibrator.css&#x27;;
+  head.appendChild(link);
+});
+
+/* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Calibrator Class &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+/** A self contained object for easy web based screen calibration */
+class Calibrator {
+  /**
+   * Setup of the calibrator object
+   * @param  {function}  callbackWhenClosed function to call when the calibrator is dismissed. 
+   * An object containing relevant calibration information is passed as argument.
+   * @param  {Boolean} showWhenReady      If true, the calibrator is displayed after templates are loaded.
+   * @return {Calibrator}                   
+   */
+  constructor(callbackWhenClosed &#x3D; null, showWhenReady &#x3D; true) {
+    /**
+     * Check if the full path is known
+     */
+    if (typeof calibratorFullpath &#x3D;&#x3D;&#x3D; &quot;undefined&quot;) {
+      throw new Error(&quot;Calibrator.js: library path is unknown.&quot;);
+    } else {
+      this.calibratorFullpath &#x3D; calibratorFullpath;
+    }
+
+    /**
+     * Check if underscore.js is loaded
+     */
+
+    if (typeof _ !&#x3D;&#x3D; &quot;function&quot;) {
+      throw new Error(&quot;Calibrator.js: Underscore.js is needed for templating.&quot;);
+    }
+
+    /**
+     * Object containing the file path of all the views
+     * @type {Object}
+     * @const
+     * @private
+     */
+    this.VIEWS_PATHS &#x3D; {
+      container: this.calibratorFullpath + &quot;/views/calibrator-container.template&quot;,
+      knownsize: this.calibratorFullpath + &quot;/views/calibrator-s1-knownsize.template&quot;,
+      enterknownsize: this.calibratorFullpath + &quot;/views/calibrator-s1-enterknownsize.template&quot;,
+      chooseobject: this.calibratorFullpath + &quot;/views/calibrator-s1-chooseobject.template&quot;,
+      specifystandardsize: this.calibratorFullpath + &quot;/views/calibrator-s1-specifystandardsize.template&quot;,
+      setbrightness: this.calibratorFullpath + &quot;/views/calibrator-s2-content.template&quot;,
+      summary: this.calibratorFullpath + &quot;/views/calibrator-s3-content.template&quot;
+    };
+
+    var thisObject &#x3D; this;
+    this.templateManager &#x3D; new TemplateManager(this.VIEWS_PATHS, function() {
+      thisObject.templatesAreLoaded();
+    });
+
+    /**
+     * Image keys
+     * @const
+     * @private
+     */
+    this.IMAGE_KEY_CREDITCARD &#x3D; &quot;creditCard&quot;;
+    this.IMAGE_KEY_CD &#x3D; &quot;cd&quot;;
+
+    /**
+     * Images object with [path, [width, height], real width in cm, maxScaling]
+     * @type {Object}
+     * @const
+     * @private
+     */
+    this.IMAGES &#x3D; {
+      [this.IMAGE_KEY_CREDITCARD]: [this.calibratorFullpath + &quot;/img/card.png&quot;, [384, 242], 8.6, 1.2],
+      [this.IMAGE_KEY_CD]: [this.calibratorFullpath + &quot;/img/cd.png&quot;, [596, 596], 12, 1.2]
+    }
+
+    /**
+     * Distance of the subject from the screen in cm, default to 50 cm (arm length)
+     * @type {Number}
+     * @const
+     * @public
+     */
+    this.distanceFromScreen &#x3D; 50;
+
+    /**
+     * Heigth of the canvas in pixels
+     * @type {Number}
+     * @private
+     */
+    this.canvasHeight &#x3D; 400;
+
+    /**
+     * Number of different gray shades for the brightness calibration 
+     * @type {Number}
+     * @const
+     * @private
+     */
+    this.BRIGHTNESS_NUMBER_OF_CONTRASTS &#x3D; 12;
+
+    /**
+     * Object storing the cached image to draw on the canvas
+     * @type {Object}
+     * @private
+     */
+    this.cachedImages &#x3D; {};
+
+    /** Preload images */
+    this.preloadImages();
+
+    /** 
+     * Steps constants 
+     * @const
+     * @private
+     */
+    this.STEP_TITLES &#x3D; [&quot;Step 1: Screen size calibration&quot;, &quot;Step 2: Contrast and brightness&quot;, &quot;Step 3: Summary&quot;];
+
+    this.STEP_SCREENSIZE_ASK_IFKNOWS &#x3D; 0;
+    this.STEP_SCREENSIZE_ENTER_KNOWNSIZE &#x3D; 1;
+    this.STEP_SCREENSIZE_CHOOSE_OBJECT &#x3D; 2;
+    this.STEP_SCREENSIZE_ENTER_OBJECTSIZE &#x3D; 3;
+    this.STEP_BRIGHTNESS &#x3D; 4;
+    this.STEP_SUMMARY &#x3D; 5;
+
+    /**
+     * Buttons value attributes
+     * @const
+     * @private
+     */
+    this.BUTTON_SIZEKNOWN &#x3D; &quot;s1:sizeKnown&quot;;
+    this.BUTTON_SIZEUNKNOWN &#x3D; &quot;s1:sizeUnknown&quot;;
+    this.BUTTON_CONFIRM_MANUALSIZE &#x3D; &quot;s1:confirmManualSize&quot;;
+    this.BUTTON_CHOOSE_CREDITCARD &#x3D; &quot;s1:chooseCreditCard&quot;;
+    this.BUTTON_CHOOSE_COMPACTDISK &#x3D; &quot;s1:chooseCompactDisk&quot;;
+    this.BUTTON_CONFIRM_OBJECTSIZE &#x3D; &quot;s1:confirmObjectSize&quot;;
+    this.BUTTON_CONFIRM_BRIGHTNESS &#x3D; &quot;s2:confirmBrightness&quot;;
+    this.BUTTON_FINAL_CONFIRM &#x3D; &quot;s3:finalConfirm&quot;;
+
+    this.BUTTON_BACK &#x3D; &quot;back&quot;;
+
+    this.currentStep &#x3D; this.STEP_SCREENSIZE_ASK_IFKNOWS;
+
+    /**
+     * Desired precision of the text output
+     * @type {Number}
+     * @const
+     * @private
+     */
+    this.FLOAT_PRECISION &#x3D; 2;
+
+    /**
+     * Private variables
+     */
+
+    /**
+     * Private variable holding screen real diagonal size in inches
+     * @type {Number}
+     * @private
+     */
+    this._diagonalSize &#x3D; null;
+
+    /**
+     * Private variable holding the current image key
+     * @type {string}
+     * @private
+     */
+    this._currentImage &#x3D; null;
+
+    /**
+     * Private variable holding the image scale ratio between 0 and 1.
+     * @type {Number}
+     * @private
+     */
+    this._imageRatio &#x3D; 0.5;
+
+    /**
+     * Determines if the calibrator automatically shows after loading of templates.
+     * @type {boolean}
+     * @private
+     */
+    this._showWhenReady &#x3D; (showWhenReady &#x3D;&#x3D; true) ? true : false;
+
+    /** Setup callback */
+
+    /**
+     * Function called after the user closes the calibrator. Argument sent to the callback is an object with keys 
+     *   * status 
+     *     + 0 the calibrator did not finish normally
+     *     + 1 calibrator finish normally
+     *   * diagonalSize 
+     *     + diagonal size in inches
+     *   * diagonalSizeInPx
+     *     + diagonal size in inches
+     *   * distanceFromScreenInCm
+     *     + distance from the screen in cm (calibrator.distanceFromScreen)
+     *   * pixelsPerInch
+     *     + computed pixel density in pixels per inch
+     *   * pixelsPerDegree
+     *     + computed pixels per degree
+     *     
+     * @type {function}
+     * @public
+     */
+    this.callbackWhenClosed &#x3D; null;
+
+    if (!callbackWhenClosed) {
+      console.log(&quot;Calibrator.js: no callback is set-up for the calibrator to call when finished!&quot;);
+    } else {
+      this.callbackWhenClosed &#x3D; callbackWhenClosed;
+    }
+
+    /** Handle Resize */
+    $(window).resize(function() {
+      this.canvasResized();
+    });
+  }
+
+  /**
+   * Preloads images from path defined in this.IMAGES
+   * @return {undefined}
+   * @private
+   */
+  preloadImages() {
+    for (var key in this.IMAGES) {
+      this.cachedImages[key] &#x3D; new Image();
+      this.cachedImages[key].src &#x3D; this.IMAGES[key][0];
+
+      //this.cachedImages[key].onload &#x3D; function() {
+      //   if (++loadedImages &gt;&#x3D; numImages) {
+      //     callback(images);
+      //   }
+      // };
+    }
+  }
+
+  /**
+   * Called after all templates are loaded and compiled.
+   * @return {undefined}
+   * @private
+   */
+  templatesAreLoaded() {
+    console.log(&quot;Calibrator.js : All templates are loaded&quot;);
+
+    /** Add calibrator div to DOM */
+    this.addToDom();
+
+    /**
+     * Container element reference 
+     * @type {object}
+     */
+    this.container &#x3D; $(&quot;.calibrator-container&quot;);
+
+    /** Toggle display depending on preset showWhenReady */
+    $(this.container).toggle(this._showWhenReady);
+
+    /** Setup events */
+    this.resetEvents();
+
+  }
+
+  /**
+   * Adds the calibrator container template to the DOM
+   * @private 
+   */
+  addToDom() {
+    this.templateManager.renderInTarget(&quot;container&quot;, {
+      title: this.currentTitle,
+      content: this.currentContent
+    }, &quot;body&quot;);
+  }
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Appearence Methods &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  /**
+   * Shows the calibrator.
+   * @return {undefined}
+   * @public 
+   */
+  show() {
+    $(this.container).fadeIn(200);
+  }
+
+  /**
+   * Hides the calibrator.
+   * @return {undefined} 
+   * @public
+   */
+  hide() {
+    $(this.container).fadeOut(200);
+  }
+
+  /**
+   * Toggle the display of the calibrator.
+   * @return {undefined} 
+   * @public
+   */
+  toggle() {
+    $(this.container).toggle(200);
+  }
+
+  /**
+   * Toggle display of the information div.
+   * @return {undefined} 
+   * @public
+   */
+  toggleInfo() {
+    $(&quot;.calibrator-info-content&quot;).toggle(200);
+  }
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; View Update Methods &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  /**
+   * Updates the view with the appropriate title and content for the current step.
+   * @return {undefined} 
+   * @private
+   */
+  updateView() {
+    /** keep reference to current object for the callbacks */
+    var thisObject &#x3D; this;
+
+    /** Update top guide */
+    this.updateGuide();
+
+    /**
+     * Animate title switch 
+     */
+    $(&quot;.calibrator-title&quot;).animate({
+      opacity: 0
+    }, 300, function() {
+      $(&quot;.calibrator-title&quot;).html(&quot;&amp;lt;h3&gt;&quot; + thisObject.currentTitle + &quot;&amp;lt;/h3&gt;&quot;);
+      $(&quot;.calibrator-title&quot;).animate({
+        opacity: 300
+      }, 100);
+    });
+
+    /**
+     * Setup animation of content switch 
+     */
+    $(&quot;.calibrator-content&quot;).animate({
+      opacity: 0
+    }, 300, function() {
+
+      /** Load content */
+      $(&quot;.calibrator-content&quot;).html(thisObject.currentContent);
+
+      /** Perform logic associated with this step */
+      thisObject.setStepLogic();
+
+      /** Add back button if necessary */
+      if (thisObject.currentStep !&#x3D; thisObject.STEP_SCREENSIZE_ASK_IFKNOWS) {
+        thisObject.addBackButton();
+      }
+
+      /** Show content div */
+      $(&quot;.calibrator-content&quot;).animate({
+        opacity: 300
+      }, 100, function() {
+
+        /** Reset events after animation is done and DOM is ready */
+        thisObject.resetEvents();
+
+      });
+    });
+
+  }
+
+  /**
+   * Function that update the classes of the top guide to show active step.
+   * @return {undefined} 
+   * @private
+   */
+  updateGuide() {
+    if ($(&quot;.calibrator-guide&quot;).length) {
+      _.each($(&quot;.calibrator-guide div&quot;), function(element) {
+        $(element).removeClass(&quot;calibrator-guide-active&quot;);
+      });
+
+      switch (this.currentStep) {
+        case this.STEP_SCREENSIZE_ASK_IFKNOWS:
+        case this.STEP_SCREENSIZE_ENTER_KNOWNSIZE:
+        case this.STEP_SCREENSIZE_CHOOSE_OBJECT:
+        case this.STEP_SCREENSIZE_ENTER_OBJECTSIZE:
+          $(&quot;#calibrator-guide-step1&quot;).addClass(&quot;calibrator-guide-active&quot;);
+          break;
+        case this.STEP_BRIGHTNESS:
+          $(&quot;#calibrator-guide-step2&quot;).addClass(&quot;calibrator-guide-active&quot;);
+          break;
+        case this.STEP_SUMMARY:
+          $(&quot;#calibrator-guide-step3&quot;).addClass(&quot;calibrator-guide-active&quot;);
+          break;
+      }
+    } else {
+      console.log(&quot;Calibrator.js: calibrator-guide div not in the dom.&quot;);
+    }
+  }
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Event Handling Methods &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  /**
+   * Resets event listeners after DOM change
+   * @return {undefined} 
+   * @private
+   */
+  resetEvents() {
+
+    /** Remove current handlers */
+    $(&quot;.calibrator-info-icon&quot;).off();
+    $(&quot;.calibrator-dismiss-icon&quot;).off();
+    $(&quot;.calibrator-button&quot;).off();
+    $(&quot;.calibrator-size-range&quot;).off();
+
+    /**
+     * Hold the reference to the calibrator object for callbacks
+     * @type {Object}
+     */
+    var thisObject &#x3D; this;
+
+    $(&quot;.calibrator-info-icon&quot;).on(&quot;click&quot;, function(e) {
+      thisObject.toggleInfo();
+    });
+
+    $(&quot;.calibrator-dismiss-icon&quot;).on(&quot;click&quot;, function(e) {
+      thisObject.callbackNow(0);
+      thisObject.hide();
+    });
+
+    $(&quot;.calibrator-button&quot;).on(&quot;click&quot;, function(e) {
+      thisObject.buttonClicked(e);
+    });
+
+    $(&quot;.calibrator-size-range&quot;).on(&quot;change&quot;, function(e) {
+      thisObject.setRatioFromRange($(e.target));
+      thisObject.drawImage();
+      thisObject.updateSummaryInformation();
+    });
+
+  }
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Step Management Methods &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  /**
+   * Go to the specified step. 
+   * @param  {Number} step step index as defined by calibrate.STEP_XXX
+   * @return {undefined}
+   * @private
+   */
+  goToStep(step) {
+    this.currentStep &#x3D; step;
+    this.updateView();
+  }
+
+  /**
+   * After step content has been drawn, this function performs step specific logic.
+   * @private
+   */
+  setStepLogic() {
+    switch (this.currentStep) {
+      case this.STEP_SCREENSIZE_ENTER_KNOWNSIZE:
+        /**
+         * If diagonalSize is valid - set the input to its value, else set _diagonalSize to null
+         */
+        if ($.isNumeric(this.diagonalSize)) {
+          $(&quot;#calibrator-monitor-size&quot;)[0].value &#x3D; this.diagonalSize.toFixed(this.FLOAT_PRECISION);
+        } else {
+          this.diagonalSize &#x3D; null;
+        }
+        break;
+      case this.STEP_SCREENSIZE_CHOOSE_OBJECT:
+        // no logic
+        break;
+      case this.STEP_SCREENSIZE_ENTER_OBJECTSIZE:
+        this.setRangeFromRatio();
+        this.setDiagonalSizeFromRatio();
+        this.drawImage();
+        this.updateSummaryInformation();
+        break;
+      case this.STEP_BRIGHTNESS:
+        this.drawGrayScale();
+        console.log(this.pixelsPerDegree);
+        break;
+      case this.STEP_SUMMARY:
+        break;
+
+    }
+  }
+
+  /**
+   * Goes to previous step.
+   * @return {undefined}
+   * @private
+   */
+  goToPreviousStep() {
+    switch (this.currentStep) {
+      case this.STEP_SCREENSIZE_ENTER_KNOWNSIZE:
+        this.goToStep(this.STEP_SCREENSIZE_ASK_IFKNOWS);
+        break;
+      case this.STEP_SCREENSIZE_CHOOSE_OBJECT:
+        this.goToStep(this.STEP_SCREENSIZE_ASK_IFKNOWS);
+        break;
+      case this.STEP_SCREENSIZE_ENTER_OBJECTSIZE:
+        this.goToStep(this.STEP_SCREENSIZE_CHOOSE_OBJECT);
+        break;
+      case this.STEP_BRIGHTNESS:
+        this.goToStep(this.STEP_SCREENSIZE_ASK_IFKNOWS);
+        break;
+      case this.STEP_SUMMARY:
+        this.goToStep(this.STEP_BRIGHTNESS);
+        break;
+
+    }
+  }
+
+  /**
+   * Add a back button to the content div.
+   * @private
+   */
+  addBackButton() {
+    /** look for a .calibrator-backdiv placeholder in the document */
+    if ($(&quot;.calibrator-backdiv&quot;).length) {
+      var backButtonHtml &#x3D; &#x27;&amp;lt;button class&#x3D;&quot;btn calibrator-button calibrator-button-back&quot; value&#x3D;&quot;back&quot;&gt;&#x27; +
+        &#x27;Back&#x27; +
+        &#x27;&amp;lt;/button&gt;&#x27;;
+      $(&quot;.calibrator-backdiv&quot;).append(backButtonHtml);
+    } else {
+      var backButtonHtml &#x3D; &#x27;&amp;lt;div class&#x3D;&quot;col-xs-12 calibrator-spacing&quot;&gt;&#x27; +
+        &#x27;&amp;lt;/div&gt;&#x27; +
+        &#x27;&amp;lt;div class&#x3D;&quot;col-xs-12 &quot;&gt;&#x27; +
+        &#x27;&amp;lt;button class&#x3D;&quot;btn calibrator-button calibrator-button-back&quot; value&#x3D;&quot;back&quot;&gt;&#x27; +
+        &#x27;Back&#x27; +
+        &#x27;&amp;lt;/button&gt;&#x27; +
+        &#x27;&amp;lt;/div&gt;&#x27;;
+      $(&quot;.calibrator-content&quot;).append(backButtonHtml);
+    }
+
+  }
+
+  /**
+   * handles all events related to the calibrator buttons being clicked
+   * @param  {object} event event from the callback
+   * @private
+   */
+  buttonClicked(event) {
+    var buttonValue &#x3D; event.target.value;
+
+    switch (buttonValue) {
+      case this.BUTTON_SIZEKNOWN:
+        this.goToStep(this.STEP_SCREENSIZE_ENTER_KNOWNSIZE);
+        break;
+      case this.BUTTON_SIZEUNKNOWN:
+        this.goToStep(this.STEP_SCREENSIZE_CHOOSE_OBJECT);
+        break;
+
+      case this.BUTTON_CONFIRM_MANUALSIZE:
+        if ($.isNumeric($(&quot;#calibrator-monitor-size&quot;)[0].value)) {
+          this.diagonalSize &#x3D; Number($(&quot;#calibrator-monitor-size&quot;)[0].value);
+          this.goToStep(this.STEP_BRIGHTNESS);
+        } else {
+          console.log(&quot;Calibrator.js: monitor size is invalid&quot;);
+        }
+        break;
+
+      case this.BUTTON_CHOOSE_CREDITCARD:
+        this._currentImage &#x3D; this.IMAGE_KEY_CREDITCARD;
+        this.updateCanvasHeight();
+        this.goToStep(this.STEP_SCREENSIZE_ENTER_OBJECTSIZE);
+        break;
+      case this.BUTTON_CHOOSE_COMPACTDISK:
+        this._currentImage &#x3D; this.IMAGE_KEY_CD;
+        this.updateCanvasHeight();
+        this.goToStep(this.STEP_SCREENSIZE_ENTER_OBJECTSIZE);
+        break;
+      case this.BUTTON_CONFIRM_OBJECTSIZE:
+        this.goToStep(this.STEP_BRIGHTNESS);
+        break;
+      case this.BUTTON_CONFIRM_BRIGHTNESS:
+        this.goToStep(this.STEP_SUMMARY);
+        break;
+      case this.BUTTON_FINAL_CONFIRM:
+        this.callbackNow(1);
+        this.hide();
+        break;
+
+      case this.BUTTON_BACK:
+        this.goToPreviousStep();
+        break;
+    }
+  }
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Summarize Informations &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  /**
+   * Function that looks for place holders in the current page for summary information and updates it using calibrator.FLOAT_PRECISION.
+   * @return {undefined}
+   * @private
+   */
+  updateSummaryInformation() {
+    var thisObject &#x3D; this;
+    if ($(&quot;.calibrator-diagonal-size-inches&quot;).length) {
+      _.each($(&quot;.calibrator-diagonal-size-inches&quot;), function(element) {
+        $(element).html(thisObject.diagonalSize.toFixed(thisObject.FLOAT_PRECISION) + &quot; inches&quot;);
+      })
+    }
+
+  }
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Callback Methods &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  /**
+   * Function called when calibrator is dismissed. Call the callbackWhenClosed function if it was provided, else just print the result of the calibrator in the console.
+   * @param  {Number} status 0 for an early exit. 1 for a normal exit.
+   */
+  callbackNow(status) {
+    var returnObject &#x3D; {
+      status: 0,
+      diagonalSize: null,
+      diagonalSizeInPx: this.diagonalSizeInPx,
+      distanceFromScreenInCm: null,
+      pixelsPerInch: null,
+      pixelsPerDegree: null
+
+    }
+
+    if (this.diagonalSize) {
+      returnObject.status &#x3D; status;
+      returnObject.diagonalSize &#x3D; this.diagonalSize;
+      returnObject.distanceFromScreenInCm &#x3D; this.distanceFromScreen;
+      returnObject.pixelsPerInch &#x3D; this.pixelsPerInch;
+      returnObject.pixelsPerDegree &#x3D; this.pixelsPerDegree;
+
+    }
+
+    if (this.callbackWhenClosed) {
+      this.callbackWhenClosed(returnObject);
+    } else {
+      console.log(&quot;Calibrator.js: Has been dismisse &quot;)
+      console.log(returnObject);
+    }
+
+  }
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Object Methods &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  /**
+   * Update canvas height as a function of the selected image.
+   * @return {undefined}
+   * @private
+   */
+  updateCanvasHeight() {
+    if (this.currentImage) {
+      var imageMaxHeight &#x3D; this.IMAGES[this.currentImage][1][1] * this.IMAGES[this.currentImage][3];
+      this.canvasHeight &#x3D; imageMaxHeight + 50;
+    }
+  }
+
+  /**
+   * Resizes the canvas to avoid unwanted scaling. Defines the canvas height as this.canvasHeight
+   * @return {undefined}
+   * @private
+   */
+  fitCanvasToContainer() {
+    if ($(&quot;.calibrator-canvas&quot;).length) {
+      var canvas &#x3D; $(&quot;.calibrator-canvas&quot;)[0];
+
+      /* Make it visually fill the positioned parent */
+      canvas.style.width &#x3D; &#x27;100%&#x27;;
+      canvas.style.height &#x3D; this.canvasHeight + &#x27;px&#x27;;
+
+      /* then set the internal size to match */
+      canvas.width &#x3D; canvas.offsetWidth;
+      canvas.height &#x3D; canvas.offsetHeight;
+    }
+  }
+
+  /**
+   * Function handling canvas resize and redraw 
+   */
+  canvasResized() {
+    this.fitCanvasToContainer();
+    switch (this.currentStep) {
+      case this.STEP_SCREENSIZE_ENTER_OBJECTSIZE:
+        this.setDiagonalSizeFromRatio();
+        this.drawImage();
+        break;
+      case this.STEP_BRIGHTNESS:
+        this.drawGrayScale();
+        break;
+    }
+  }
+
+  drawImage() {
+    if (($(&quot;.calibrator-canvas&quot;).length) &amp;amp;&amp;amp; (this.currentStep &#x3D;&#x3D; this.STEP_SCREENSIZE_ENTER_OBJECTSIZE)) {
+      this.fitCanvasToContainer();
+      var canvas &#x3D; $(&quot;.calibrator-canvas&quot;)[0];
+      var canvasContext &#x3D; canvas.getContext(&quot;2d&quot;);
+      // var centerX &#x3D; canvas.width / 2;
+      // var centerY &#x3D; canvas.height / 2;
+
+      /** Clear for redraw */
+      canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+      /**  Center the image */
+      var drawAtX &#x3D; (canvas.width - this.currentImageScaledWidthInPx) / 2;
+      var drawAtY &#x3D; (canvas.height - this.currentImageScaledHeightInPx) / 2;
+      canvasContext.drawImage(this.cachedImages[this._currentImage],
+        drawAtX, drawAtY, this.currentImageScaledWidthInPx, this.currentImageScaledHeightInPx);
+    }
+  }
+
+  setRatioFromRange(element &#x3D; null) {
+    if (element &#x3D;&#x3D; null) {
+      element &#x3D; $(&quot;.calibrator-size-range&quot;)
+    }
+
+    if ($(element).length) {
+      var range &#x3D; Number($(element).attr(&quot;max&quot;)) - Number($(element).attr(&quot;min&quot;));
+      var value &#x3D; Number($(element).val());
+      this.imageRatio &#x3D; value / range;
+    }
+  }
+
+  setRangeFromRatio(element &#x3D; null) {
+    if (element &#x3D;&#x3D; null) {
+      element &#x3D; $(&quot;.calibrator-size-range&quot;)
+    }
+
+    if ($(element).length) {
+      var range &#x3D; Number($(element).attr(&quot;max&quot;)) - Number($(element).attr(&quot;min&quot;));
+      $(element).val((this.imageRatio * range) + Number($(element).attr(&quot;min&quot;)));
+    }
+
+  }
+
+  /**
+   * Set the diagonal size in inches from the pixel per inches calculate fron the scaled currentImage drawn on the canvas.
+   * @private
+   */
+  setDiagonalSizeFromRatio() {
+    if (this.currentImage) {
+      this.diagonalSize &#x3D; this.diagonalSizeInPx / (this.currentImageScaledWidthInPx / this.currentImagePhysicalWidthInInches);
+    }
+  }
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Brightness &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  drawGrayScale() {
+    if (($(&quot;.calibrator-canvas&quot;).length) &amp;amp;&amp;amp; (this.currentStep &#x3D;&#x3D; this.STEP_BRIGHTNESS)) {
+      this.fitCanvasToContainer();
+      var canvas &#x3D; $(&quot;.calibrator-canvas&quot;)[0];
+      var canvasContext &#x3D; canvas.getContext(&quot;2d&quot;);
+
+      /** Clear for redraw */
+      canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+      // canvasContext.fillStyle &#x3D; &quot;white&quot;;
+      // canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+      // var boxWidth &#x3D; Math.round(1 * this.pixelsPerCm); //cm
+      // var boxHeight &#x3D; Math.round(4 * this.pixelsPerCm); //cm
+
+      var boxWidth &#x3D; 30;
+      var boxHeight &#x3D; 150;
+      var centerX &#x3D; Math.round(canvas.width / 2);
+      var centerY &#x3D; Math.round(canvas.height / 2);
+      var topX &#x3D; centerX - (boxWidth * this.BRIGHTNESS_NUMBER_OF_CONTRASTS / 2);
+      var topY &#x3D; centerY - (boxHeight / 2);
+
+      for (var i &#x3D; 0; i &amp;lt; this.BRIGHTNESS_NUMBER_OF_CONTRASTS; i++) {
+        var luminosity &#x3D; Math.round(i * (255 / (this.BRIGHTNESS_NUMBER_OF_CONTRASTS - 1)));
+
+        canvasContext.fillStyle &#x3D; &quot;rgb(&quot; + luminosity + &quot;,&quot; + luminosity + &quot;,&quot; + luminosity + &quot;)&quot;;
+        canvasContext.fillRect((topX + i * boxWidth), topY, boxWidth, boxHeight);
+      }
+
+    } else {
+      throw new Error(&quot;Calibrator.js: the canvas element is not present, cannot drawImage().&quot;)
+    }
+
+    // pxpercm &#x3D; Math.round(window.pxperinch / 2.54);
+
+    // //calculate pixels per degree
+    // var angle &#x3D; Math.atan(screen.height / screen.width);
+    // var diagCM &#x3D; (getSliderValue() / 10) * 2.54;
+    // var screenWidthCM &#x3D; diagCM * Math.cos(angle);
+
+    // window.pxperdeg &#x3D; Math.PI / 180 * screen.width * distance / screenWidthCM;
+    // window.monitorSize &#x3D; parseFloat($(&quot;#screenInput&quot;).val());
+
+  }
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Getters and Setters &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Current Step Content &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  /**
+   * Returns the currentStep Title from calibrator.STEP_TITLES
+   * @return {String} Title
+   * @private
+   */
+  get currentTitle() {
+    switch (this.currentStep) {
+      case this.STEP_SCREENSIZE_ASK_IFKNOWS:
+        return (this.STEP_TITLES[0]);
+        break;
+      case this.STEP_SCREENSIZE_ENTER_KNOWNSIZE:
+        return (this.STEP_TITLES[0]);
+        break;
+      case this.STEP_SCREENSIZE_CHOOSE_OBJECT:
+        return (this.STEP_TITLES[0]);
+        break;
+      case this.STEP_SCREENSIZE_ENTER_OBJECTSIZE:
+        return (this.STEP_TITLES[0]);
+        break;
+      case this.STEP_BRIGHTNESS:
+        return (this.STEP_TITLES[1]);
+        break;
+      case this.STEP_SUMMARY:
+        return (this.STEP_TITLES[2]);
+        break;
+
+    }
+
+  }
+
+  /**
+   * Returns the compiled currentStep content from the templateManager
+   * @return {String} HTML Content
+   * @private
+   */
+  get currentContent() {
+    switch (this.currentStep) {
+      case this.STEP_SCREENSIZE_ASK_IFKNOWS:
+        return (this.templateManager.render(&quot;knownsize&quot;));
+        break;
+      case this.STEP_SCREENSIZE_ENTER_KNOWNSIZE:
+        return (this.templateManager.render(&quot;enterknownsize&quot;));
+        break;
+      case this.STEP_SCREENSIZE_CHOOSE_OBJECT:
+        return (this.templateManager.render(&quot;chooseobject&quot;));
+        break;
+      case this.STEP_SCREENSIZE_ENTER_OBJECTSIZE:
+        return (this.templateManager.render(&quot;specifystandardsize&quot;));
+        break;
+      case this.STEP_BRIGHTNESS:
+        return (this.templateManager.render(&quot;setbrightness&quot;));
+        break;
+      case this.STEP_SUMMARY:
+        return (this.templateManager.render(&quot;summary&quot;, {
+          diagonalSize: this.diagonalSize.toFixed(this.FLOAT_PRECISION),
+          diagonalSizeInPx: Math.ceil(this.diagonalSizeInPx),
+          pixelsPerDegree: this.pixelsPerDegree.toFixed(this.FLOAT_PRECISION),
+          pixelsPerInch: this.pixelsPerInch.toFixed(this.FLOAT_PRECISION)
+        }));
+        break;
+
+    }
+  }
+
+  /* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Size processing &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+  /* &#x3D;&#x3D;&#x3D; Screen size &#x3D;&#x3D;&#x3D; */
+
+  /**
+   * Sets physical screen diagonal in inches. Key variable of the object.
+   * @return {undefined} 
+   * @private
+   */
+  set diagonalSize(value) {
+    if (value &#x3D;&#x3D; null) {
+      this._diagonalSize &#x3D; null;
+      return;
+    }
+
+    value &#x3D; Number(value);
+    if ((value &gt; 0) &amp;amp;&amp;amp; (value &amp;lt; 60)) {
+      this._diagonalSize &#x3D; value;
+    } else {
+      console.log(&quot;Calibrator.js: Invalid diagonal size&quot;);
+    }
+  }
+
+  /**
+   * Screen physical diagonal size in inches
+   * @return {Number} Number of inches on the screen&#x27;s diagonal
+   */
+  get diagonalSize() {
+    if (this._diagonalSize) {
+      return (this._diagonalSize);
+    } else {
+      //console.log(&quot;Calibrator.js: diagonalSize is not set.&quot;);
+      return (null);
+    }
+  }
+
+  /**
+   * Physical diagonal size of the screen in cm. 
+   * @return {Number} Number of cm on the screen&#x27;s diagonal
+   */
+  get diagonalSizeInCm() {
+    if (this.diagonalSize) {
+      return (this.diagonalSize * 2.54);
+    } else {
+      return (null);
+    }
+  }
+
+  /**
+   * Returns Diagonal of the screen in pixels. Depends on the resolution of the screen. We are always able to compute it.
+   * @return {Number} Number of pixels on the screen diagonal
+   */
+  get diagonalSizeInPx() {
+    return (Math.sqrt(Math.pow(screen.availWidth, 2) + Math.pow(screen.availHeight, 2)));
+  }
+
+  /**
+   * Return the screen pixel per inches
+   * @return {Number} Pixel per inches
+   */
+  get pixelsPerInch() {
+    if (this.diagonalSize) {
+      return (this.diagonalSizeInPx / this.diagonalSize);
+    } else {
+      return (null);
+    }
+  }
+
+  /**
+   * Return the screen pixel per cm
+   * @return {Number} Pixel per cm
+   */
+  get pixelsPerCm() {
+    if (this.diagonalSize) {
+      return (this.pixelsPerInch / 2.54);
+    } else {
+      return (null);
+    }
+  }
+
+  /**
+   * Returns the pixels per degree as a function of pixel density of the screen and subject&#x27;s distance from the screen
+   * @return {Number} Pixel per degree
+   */
+  get pixelsPerDegree() {
+    if (this.diagonalSize) {
+      var visualAngleInRadian &#x3D; 2 * Math.atan((screen.availWidth / this.pixelsPerCm) / (2 * this.distanceFromScreen));
+      var degreePerRadian &#x3D; (180 / Math.PI);
+      return (screen.availWidth / (degreePerRadian * visualAngleInRadian));
+    } else {
+      return (null);
+    }
+  }
+
+  /* &#x3D;&#x3D;&#x3D; Image size &#x3D;&#x3D;&#x3D; */
+
+  /**
+   * Sets the image scale ratio 
+   * @param  {Number} ratio Real number between 0 and 1
+   * @private     
+   */
+  set imageRatio(ratio) {
+    if ((ratio &gt;&#x3D; 0) &amp;amp;&amp;amp; (ratio &amp;lt;&#x3D; 1)) {
+      this._imageRatio &#x3D; ratio;
+      this.setDiagonalSizeFromRatio();
+      this.drawImage();
+    }
+  }
+
+  /**
+   * Current image scale ratio
+   * @return {Number} Ratio between 0 and 1 (this ratio will then be multiplied by the maximum scaling factor for each image to produce the observed size)
+   */
+  get imageRatio() {
+    return (this._imageRatio);
+  }
+
+  /**
+   * Set the current selected image to the specified key and redraw.
+   * @param  {string} imageKey image key as stored in calibrator.IMAGES
+   * @private
+   */
+  set currentImage(imageKey) {
+    if (_.contains(this.IMAGES, imageKey)) {
+      this._currentImage &#x3D; imageKey;
+      this.updateCanvasHeight();
+      this.drawImage();
+    }
+  }
+
+  /**
+   * Get the current image key
+   * @return {string} image key as stored in calibrator.IMAGES
+   */
+  get currentImage() {
+    if (this._currentImage) {
+      return (this._currentImage);
+    } else {
+      console.log(&quot;Calibrator.js: currentImage is not set.&quot;)
+      return (null);
+    }
+
+  }
+
+  /**
+   * Get physical width of the object represented by the current image.
+   * @return {Number} Size in cm 
+   * @private
+   */
+  get currentImagePhysicalWidthInCm() {
+    if (this.currentImage) {
+      return (this.IMAGES[this.currentImage][2]);
+    } else {
+      return (null);
+    }
+  }
+
+  /**
+   * Get physical width of the object represented by the current image.
+   * @return {Number} Size in inches 
+   * @private
+   */
+  get currentImagePhysicalWidthInInches() {
+    if (this.currentImage) {
+      return (this.IMAGES[this.currentImage][2] / 2.54);
+    } else {
+      return (null);
+    }
+  }
+
+  /**
+   * Returns the scaled height depending on the selected scale factor (imageRatio) and maximum scaling of the image.
+   * @return {Number} Scaled height in pixel
+   * @private
+   */
+  get currentImageScaledHeightInPx() {
+    if (this.currentImage) {
+      /**
+       * The scaled pixel size is the base pixel size * maximum scaling factor * ratio as determined by the slider/range position (imageRatio)
+       */
+      return (this.IMAGES[this.currentImage][1][1] * this.IMAGES[this.currentImage][3] * this.imageRatio);
+    } else {
+      return (null);
+    }
+  }
+
+  /**
+   * Returns the scaled width depending on the selected scale factor (imageRatio) and maximum scaling of the image.
+   * @return {Number} Scaled width in pixel
+   */
+  get currentImageScaledWidthInPx() {
+    if (this.currentImage) {
+      /**
+       * The scaled pixel size is the base pixel size * maximum scaling factor * ratio as determined by the slider/range position (imageRatio)
+       */
+      return (this.IMAGES[this.currentImage][1][0] * this.IMAGES[this.currentImage][3] * this.imageRatio);
+    } else {
+      return (null);
+    }
+  }
+
+}
+
+/* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; TemplateManager Class &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+/**
+ * Class to manage the loading of templates from external files using underscore.js simple templating capabilities and JQuery.
+ */
+class TemplateManager {
+
+  /**
+   * Constructor function for the templateManager
+   * @param  {object} viewPaths          list of template URLs. Object keys will be used as the template name. 
+   * {templateName1: templateUrl1, templateName2: templateUrl2, ...}
+   * @param  {function} callbackWhenLoaded Callback function to call when templates are loaded.
+   * @public
+   */
+  constructor(viewPaths &#x3D; mandatory(), callbackWhenLoaded &#x3D; null) {
+
+    /* Allow double curly bracket syntax in the template html: {{variable}} */
+    _.templateSettings &#x3D; {
+      interpolate: /\{\{(.+?)\}\}/g
+    };
+
+    /**
+     * Contains all templates urls
+     * @type {object}
+     */
+    this.viewPaths &#x3D; viewPaths;
+
+    /**
+     * Contains cached template in underscore template format
+     * @type {Object}
+     */
+    this.cached &#x3D; {};
+
+    /** setup callback when all templates are loaded */
+    if (callbackWhenLoaded) {
+      this.callbackWhenLoaded &#x3D; callbackWhenLoaded;
+    } else {
+      this.callbackWhenLoaded &#x3D; function() {
+        console.log(&quot;TemplateManager.js: all templates loaded.&quot;);
+      }
+    }
+
+    /* Keeps reference to the current object */
+    var thisObject &#x3D; this;
+
+    /* Caches every templates asynchronously */
+    _.each(this.viewPaths, function(value, key, list) {
+      $.get(thisObject.viewPaths[key], function(raw) {
+
+        /** store after loading */
+        thisObject.store(key, raw);
+
+        /** checks if all template are loaded */
+        if (_.every(_.allKeys(thisObject.viewPaths), function(key) {
+            return (_.contains(_.allKeys(thisObject.cached), key));
+          })) {
+          /** All templates loaded, call the supplied callback. */
+          thisObject.callbackWhenLoaded();
+        }
+
+      });
+    });
+
+  }
+
+  /**
+   * Render the HTML of a template based on its name.
+   * @param  {string} name      template name
+   * @param  {Object} variables Object holding the variable values to replace in the template before rendering.
+   */
+  render(name, variables &#x3D; {}) {
+    var thisObject &#x3D; this;
+    if (this.isCached(name)) {
+      return (this.cached[name](variables));
+    } else {
+      $.get(this.urlFor(name), function(raw) {
+        thisObject.store(name, raw);
+        thisObject.render(name, variables);
+      });
+    }
+  }
+
+  /**
+   * Render the HTML of a template based on its name into a DOM target.
+   * @param  {string} name      template name
+   * @param  {Object} variables Object holding the variable values to replace in the template before rendering.
+   * @param  {Object} target    DOM element to render the HTML into
+   */
+  renderInTarget(name, variables, target) {
+    var thisObject &#x3D; this;
+    if (this.isCached(name)) {
+      $(target).append(this.cached[name](variables));
+    } else {
+      $.get(this.urlFor(name), function(raw) {
+        thisObject.store(name, raw);
+        thisObject.renderInTarget(name, variables, target);
+      });
+    }
+
+  }
+
+  /**
+   * Synchronous fetching and rendering using ajax synchronous file fetching.
+   * @param  {string}   name     template name
+   */
+  renderSync(name) {
+    if (!this.isCached(name)) {
+      this.fetch(name);
+    }
+    this.render(name);
+  }
+
+  /**
+   * Preloads and cache the template as underscore templates.
+   * @param  {string} name template name
+   */
+  prefetch(name) {
+    var thisObject &#x3D; this;
+    $.get(this.urlFor(name), function(raw) {
+      thisObject.store(name, raw);
+    });
+  }
+
+  /**
+   * Synchronously fetch a template.
+   * @param  {string} name template name 
+   */
+  fetch(name) {
+    // synchronous, for those times when you need it.
+    if (!this.isCached(name)) {
+      var raw &#x3D; $.ajax({
+        &#x27;url&#x27;: this.urlFor(name),
+        &#x27;async&#x27;: false
+      }).responseText;
+      this.store(name, raw);
+    }
+  }
+
+  /**
+   * Checks if a specified template is already cached
+   * @param  {string}  name template name
+   * @return {Boolean}      
+   */
+  isCached(name) {
+    return !!this.cached[name];
+  }
+
+  /**
+   * Stores a template from raw html as a underscore template.
+   * @param  {string} name template name
+   * @param  {string} raw  template html 
+   */
+  store(name, raw) {
+    this.cached[name] &#x3D; _.template(raw);
+  }
+
+  /**
+   * Return the path of the specified template
+   * @param  {string} name template name
+   * @return {string}      template url
+   */
+  urlFor(name) {
+    return (this.viewPaths[name]);
+  }
+}
+
+/* &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Utility Functions &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; */
+
+/**
+ * Called when mandatory argument is not set
+ * @param  {String} param Optional name of the missing argument
+ */
+
+function mandatory(param &#x3D; &quot;&quot;) {
+
+  throw new Error(&#x27;Missing parameter &#x27; + param);
+}
+
+/**
+ * Find all the positions of a needle in a haystack string
+ * @param  {string} needle   string to find
+ * @param  {string} haystack string to scan
+ * @return {Array}  Either -1 if no match is found or an array containing the indicies
+ */
+function findAllIndices(needle &#x3D; mandatory(), haystack &#x3D; mandatory()) {
+  var indices &#x3D; [];
+  for (i &#x3D; 0; i &amp;lt; haystack.length; i++) {
+    if ((haystack.substr(i, needle.length)) &#x3D;&#x3D;&#x3D; needle) {
+      indices.push(i);
+    }
+  }
+
+  if (indices.length) {
+    return (indices);
+  } else {
+    return (-1)
+  }
+}</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.4.0 on July 25, 2016.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>
